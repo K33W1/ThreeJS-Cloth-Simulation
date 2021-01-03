@@ -15,8 +15,9 @@ const VERT_LENGTH = CLOTH_SIZE / CLOTH_SEGMENTS;
 const VERT_DIAGONAL_LENGTH = Math.sqrt((VERT_LENGTH * VERT_LENGTH) * 2);
 const CLOTH_K = 1;
 const GRAVITY = 1;
-const WIND_FORCE = 1;
 const TIME_SCALE = 10;
+const WIND_SPEED_MIN = 2;
+const WIND_SPEED_MAX = 4; 
 
 let renderer;
 let scene;
@@ -25,11 +26,19 @@ let mesh;
 let geometry;
 let vertexVelocities = [];
 
+// changing wind force
+let WIND_FORCE = 1.5;
+
+// mouse click
+let clickChecker = false;
+let mouseIsPressed = false;
+
 // fix for delta time variables
+let gameTime = 0;
 let deltaTime = 0;
-let typicalFrame  = 60;
-let smallestFrame = 30;
-let longestFrame  = 144;
+let typicalFrame  = 16;
+let smallestFrame = 14;
+let longestFrame  = 50;
 let timeBefore = Date.now();
 
 init()
@@ -47,12 +56,31 @@ function init() {
     loop();
 
     window.addEventListener('resize', onResize);
+    document.addEventListener('click', onMousePress);
 }
+
 
 function onResize() {
     renderer.setSize(width, height);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+}
+
+function onMousePress(){
+    
+    let randFloat = Math.random() * (WIND_SPEED_MAX - WIND_SPEED_MIN) + WIND_SPEED_MIN;
+
+    if(!clickChecker){
+        mouseIsPressed = true;
+        clickChecker = true;
+        WIND_FORCE = randFloat;
+    }
+
+    else if(clickChecker){
+        mouseIsPressed = false;     
+        clickChecker = false;
+        WIND_FORCE = randFloat;
+    }
 }
 
 function createScene() {
@@ -148,15 +176,22 @@ function update() {
     //let deltaTime = clock.getDelta() * TIME_SCALE;
 
     // fix for delta time variables
-    var timeNow = Date.now();
-    var fixedDeltaTime = timeNow - timeBefore;
-    if (fixedDeltaTime<smallestFrame) return;
-    if (fixedDeltaTime>longestFrame) fixedDeltaTime = typicalFrame;
+    let timeNow = Date.now();
+    let fixedDeltaTime = timeNow - timeBefore;
+    
+    if (fixedDeltaTime<smallestFrame) {
+        return;
+    }
+
+    if (fixedDeltaTime>longestFrame){
+        fixedDeltaTime = typicalFrame;
+    }
+
+    gameTime += fixedDeltaTime;
     timeBefore = timeNow;
-    console.log(fixedDeltaTime/250);
 
 
-    updateCloth(fixedDeltaTime/250);
+    updateCloth(fixedDeltaTime/100);
     updateCamera();
 }
 
@@ -226,8 +261,17 @@ function updateCloth(deltaTime) {
         // Gravity
         vel.y -= GRAVITY * deltaTime
 
-        // testing
-        vel.z -= WIND_FORCE * deltaTime
+        // Wind Force
+        if(mouseIsPressed){
+            vel.z += WIND_FORCE * deltaTime  
+            console.log(WIND_FORCE);
+        }
+
+        else if(!mouseIsPressed){
+            vel.z -= WIND_FORCE * deltaTime
+            console.log(WIND_FORCE);
+        }
+        
 
         // Top are fixed
         if (i <= 10) {
