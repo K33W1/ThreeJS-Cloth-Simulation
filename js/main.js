@@ -15,6 +15,7 @@ const VERT_LENGTH = CLOTH_SIZE / CLOTH_SEGMENTS;
 const VERT_DIAGONAL_LENGTH = Math.sqrt((VERT_LENGTH * VERT_LENGTH) * 2);
 const CLOTH_K = 1;
 const GRAVITY = 1;
+const WIND_FORCE = 1;
 const TIME_SCALE = 10;
 
 let renderer;
@@ -23,6 +24,13 @@ let camera;
 let mesh;
 let geometry;
 let vertexVelocities = [];
+
+// fix for delta time variables
+let deltaTime = 0;
+let typicalFrame  = 60;
+let smallestFrame = 30;
+let longestFrame  = 144;
+let timeBefore = Date.now();
 
 init()
 
@@ -70,14 +78,14 @@ function createAxesHelper() {
 
 function createCamera() {
     camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-    camera.position.set(0, 0, 10);
+    camera.position.set(0, 0, 20);
 }
 
 function createControls() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.maxPolarAngle = Math.PI;
-    controls.minDistance = 2;
-    controls.maxDistance = 20;
+    controls.minDistance = 10;
+    controls.maxDistance = 30;
 }
 
 function createFloor() {
@@ -137,9 +145,18 @@ function loop() {
 }
 
 function update() {
-    let deltaTime = clock.getDelta() * TIME_SCALE;
+    //let deltaTime = clock.getDelta() * TIME_SCALE;
 
-    updateCloth(deltaTime);
+    // fix for delta time variables
+    var timeNow = Date.now();
+    var fixedDeltaTime = timeNow - timeBefore;
+    if (fixedDeltaTime<smallestFrame) return;
+    if (fixedDeltaTime>longestFrame) fixedDeltaTime = typicalFrame;
+    timeBefore = timeNow;
+    console.log(fixedDeltaTime/250);
+
+
+    updateCloth(fixedDeltaTime/250);
     updateCamera();
 }
 
@@ -208,6 +225,9 @@ function updateCloth(deltaTime) {
 
         // Gravity
         vel.y -= GRAVITY * deltaTime
+
+        // testing
+        vel.z -= WIND_FORCE * deltaTime
 
         // Top are fixed
         if (i <= 10) {
