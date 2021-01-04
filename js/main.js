@@ -17,12 +17,8 @@ const CLOTH_K = 4;
 const GRAVITY = 0.1;
 const WIND_FORCE = 0.5;
 const TIME_SCALE = 10;
-const WIND_SPEED_MIN_X = 0.05;
-const WIND_SPEED_MAX_X = 0.10;
-const WIND_SPEED_MIN_Y = 0.00;
-const WIND_SPEED_MAX_Y = 0.05;
-const WIND_SPEED_MIN_Z = 0.1;
-const WIND_SPEED_MAX_Z = 0.15; 
+const WIND_SPEED_MIN_Z = 0.025;
+const WIND_SPEED_MAX_Z = 0.05;
 
 let renderer;
 let scene;
@@ -32,9 +28,7 @@ let geometry;
 let vertexVelocities = [];
 
 // changing wind force
-let WIND_FORCE_X = 0;
-let WIND_FORCE_Y = 0;
-let WIND_FORCE_Z = 1.5;
+let WIND_FORCE_Z = 0.05;
 
 // mouse click
 let clickChecker = false;
@@ -74,23 +68,17 @@ function onResize() {
 
 function onMousePress(){
     
-    let randFloat_X = Math.random() * (WIND_SPEED_MAX_X - WIND_SPEED_MIN_X) + WIND_SPEED_MIN_X;
-    let randFloat_Y = Math.random() * (WIND_SPEED_MAX_Y - WIND_SPEED_MIN_Y) + WIND_SPEED_MIN_Y;
     let randFloat_Z = Math.random() * (WIND_SPEED_MAX_Z - WIND_SPEED_MIN_Z) + WIND_SPEED_MIN_Z;
 
     if(!clickChecker){
         mouseIsPressed = true;
         clickChecker = true;
-        WIND_FORCE_X = randFloat_X;
-        WIND_FORCE_Y = randFloat_Y;
         WIND_FORCE_Z = randFloat_Z;
     }
 
     else if(clickChecker){
         mouseIsPressed = false;     
         clickChecker = false;
-        WIND_FORCE_X = randFloat_X;
-        WIND_FORCE_Y = randFloat_Y;
         WIND_FORCE_Z = randFloat_Z;
     }
 }
@@ -118,7 +106,7 @@ function createAxesHelper() {
 
 function createCamera() {
     camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-    camera.position.set(0, 0, 20);
+    camera.position.set(-20, 10, 20);
 }
 
 function createControls() {
@@ -271,17 +259,13 @@ function updateCloth(deltaTime) {
 
         // Wind Force
         if(mouseIsPressed){
-            vel.x += WIND_FORCE_X * deltaTime
-            vel.y += WIND_FORCE_Y * deltaTime
             vel.z += WIND_FORCE_Z * deltaTime  
-            //console.log(WIND_FORCE);
+            //console.log(WIND_FORCE_Z);
         }
 
         else if(!mouseIsPressed){
-            vel.x -= WIND_FORCE_X * deltaTime
-            vel.y -= WIND_FORCE_Y * deltaTime
             vel.z -= WIND_FORCE_Z * deltaTime
-            //console.log(WIND_FORCE);
+            //console.log(WIND_FORCE_Z);
         }
         
 
