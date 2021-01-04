@@ -13,9 +13,9 @@ const CLOTH_SEGMENTS = 10;
 const VERTS_COUNT = CLOTH_SEGMENTS + 1;
 const VERT_LENGTH = CLOTH_SIZE / CLOTH_SEGMENTS;
 const VERT_DIAGONAL_LENGTH = Math.sqrt((VERT_LENGTH * VERT_LENGTH) * 2);
-const CLOTH_K = 1;
-const GRAVITY = 1;
-const WIND_FORCE = 1;
+const CLOTH_K = 4;
+const GRAVITY = 0.1;
+const WIND_FORCE = 0.5;
 const TIME_SCALE = 10;
 
 let renderer;
@@ -155,7 +155,6 @@ function update() {
     timeBefore = timeNow;
     console.log(fixedDeltaTime/250);
 
-
     updateCloth(fixedDeltaTime/250);
     updateCamera();
 }
@@ -178,49 +177,49 @@ function updateCloth(deltaTime) {
         // Left
         if (hasLeft) {
             const otherPos = geometry.vertices[i - 1];
-            addOtherVertexForce(otherPos, pos, vel, VERT_LENGTH);
+            addOtherVertexForce(otherPos, pos, vel, VERT_LENGTH, deltaTime);
         }
 
         // Right
         if (hasRight) {
             const otherPos = geometry.vertices[i + 1];
-            addOtherVertexForce(otherPos, pos, vel, VERT_LENGTH);
+            addOtherVertexForce(otherPos, pos, vel, VERT_LENGTH, deltaTime);
         }
 
         // Up
         if (hasUp) {
             const otherPos = geometry.vertices[i - VERTS_COUNT];
-            addOtherVertexForce(otherPos, pos, vel, VERT_LENGTH);
+            addOtherVertexForce(otherPos, pos, vel, VERT_LENGTH, deltaTime);
         }
 
         // Down
         if (hasDown) {
             const otherPos = geometry.vertices[i + VERTS_COUNT];
-            addOtherVertexForce(otherPos, pos, vel, VERT_LENGTH);
+            addOtherVertexForce(otherPos, pos, vel, VERT_LENGTH, deltaTime);
         }
 
         // Upper left
         if (hasUp && hasLeft) {
             const otherPos = geometry.vertices[i - VERTS_COUNT - 1];
-            addOtherVertexForce(otherPos, pos, vel, VERT_DIAGONAL_LENGTH);
+            addOtherVertexForce(otherPos, pos, vel, VERT_DIAGONAL_LENGTH, deltaTime);
         }
 
         // Upper right
         if (hasUp && hasRight) {
             const otherPos = geometry.vertices[i - VERTS_COUNT + 1];
-            addOtherVertexForce(otherPos, pos, vel, VERT_DIAGONAL_LENGTH);
+            addOtherVertexForce(otherPos, pos, vel, VERT_DIAGONAL_LENGTH, deltaTime);
         }
 
         // Down left
         if (hasDown && hasLeft) {
             const otherPos = geometry.vertices[i + VERTS_COUNT - 1];
-            addOtherVertexForce(otherPos, pos, vel, VERT_DIAGONAL_LENGTH);
+            addOtherVertexForce(otherPos, pos, vel, VERT_DIAGONAL_LENGTH, deltaTime);
         }
 
         // Down right
         if (hasDown && hasRight) {
             const otherPos = geometry.vertices[i + VERTS_COUNT + 1];
-            addOtherVertexForce(otherPos, pos, vel, VERT_DIAGONAL_LENGTH);
+            addOtherVertexForce(otherPos, pos, vel, VERT_DIAGONAL_LENGTH, deltaTime);
         }
 
         // Gravity
@@ -240,7 +239,7 @@ function updateCloth(deltaTime) {
     // Apply velocity
     for (let i = 0; i < geometry.vertices.length; i++) {
         const pos = geometry.vertices[i];
-        const vel = vertexVelocities[i];
+        const vel = vertexVelocities[i].clone();
 
         vel.multiplyScalar(deltaTime);
         pos.add(vel);
@@ -249,10 +248,10 @@ function updateCloth(deltaTime) {
     geometry.verticesNeedUpdate = true;
     geometry.computeVertexNormals();
 
-    function addOtherVertexForce(otherPos, pos, vel, vert_length) {
+    function addOtherVertexForce(otherPos, pos, vel, vert_length, deltaTime) {
         const force = (pos.distanceTo(otherPos) - vert_length) * CLOTH_K;
         const dir = new THREE.Vector3(otherPos.x - pos.x, otherPos.y - pos.y, otherPos.z - pos.z).normalize();
-        const accel = new THREE.Vector3(dir.x, dir.y, dir.z).multiplyScalar(force);
+        const accel = new THREE.Vector3(dir.x, dir.y, dir.z).multiplyScalar(force * deltaTime);
         vel.add(accel);
     }
 }
