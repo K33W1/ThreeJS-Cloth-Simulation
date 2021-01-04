@@ -17,6 +17,12 @@ const CLOTH_K = 4;
 const GRAVITY = 0.1;
 const WIND_FORCE = 0.5;
 const TIME_SCALE = 10;
+const WIND_SPEED_MIN_X = 0.05;
+const WIND_SPEED_MAX_X = 0.10;
+const WIND_SPEED_MIN_Y = 0.00;
+const WIND_SPEED_MAX_Y = 0.05;
+const WIND_SPEED_MIN_Z = 0.1;
+const WIND_SPEED_MAX_Z = 0.15; 
 
 let renderer;
 let scene;
@@ -25,11 +31,20 @@ let mesh;
 let geometry;
 let vertexVelocities = [];
 
+// changing wind force
+let WIND_FORCE_X = 0;
+let WIND_FORCE_Y = 0;
+let WIND_FORCE_Z = 1.5;
+
+// mouse click
+let clickChecker = false;
+let mouseIsPressed = false;
+
 // fix for delta time variables
 let deltaTime = 0;
-let typicalFrame  = 60;
-let smallestFrame = 30;
-let longestFrame  = 144;
+let typicalFrame  = 16;
+let smallestFrame = 14;
+let longestFrame  = 50;
 let timeBefore = Date.now();
 
 init()
@@ -47,12 +62,37 @@ function init() {
     loop();
 
     window.addEventListener('resize', onResize);
+    document.addEventListener('click', onMousePress);
 }
+
 
 function onResize() {
     renderer.setSize(width, height);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+}
+
+function onMousePress(){
+    
+    let randFloat_X = Math.random() * (WIND_SPEED_MAX_X - WIND_SPEED_MIN_X) + WIND_SPEED_MIN_X;
+    let randFloat_Y = Math.random() * (WIND_SPEED_MAX_Y - WIND_SPEED_MIN_Y) + WIND_SPEED_MIN_Y;
+    let randFloat_Z = Math.random() * (WIND_SPEED_MAX_Z - WIND_SPEED_MIN_Z) + WIND_SPEED_MIN_Z;
+
+    if(!clickChecker){
+        mouseIsPressed = true;
+        clickChecker = true;
+        WIND_FORCE_X = randFloat_X;
+        WIND_FORCE_Y = randFloat_Y;
+        WIND_FORCE_Z = randFloat_Z;
+    }
+
+    else if(clickChecker){
+        mouseIsPressed = false;     
+        clickChecker = false;
+        WIND_FORCE_X = randFloat_X;
+        WIND_FORCE_Y = randFloat_Y;
+        WIND_FORCE_Z = randFloat_Z;
+    }
 }
 
 function createScene() {
@@ -148,12 +188,16 @@ function update() {
     //let deltaTime = clock.getDelta() * TIME_SCALE;
 
     // fix for delta time variables
-    var timeNow = Date.now();
-    var fixedDeltaTime = timeNow - timeBefore;
-    if (fixedDeltaTime<smallestFrame) return;
-    if (fixedDeltaTime>longestFrame) fixedDeltaTime = typicalFrame;
-    timeBefore = timeNow;
-    console.log(fixedDeltaTime/250);
+    let timeNow = Date.now();
+    let fixedDeltaTime = timeNow - timeBefore;
+    
+    if (fixedDeltaTime<smallestFrame) {
+        return;
+    }
+
+    if (fixedDeltaTime>longestFrame){
+        fixedDeltaTime = typicalFrame;
+    }
 
     updateCloth(fixedDeltaTime/250);
     updateCamera();
@@ -225,8 +269,21 @@ function updateCloth(deltaTime) {
         // Gravity
         vel.y -= GRAVITY * deltaTime
 
-        // testing
-        vel.z -= WIND_FORCE * deltaTime
+        // Wind Force
+        if(mouseIsPressed){
+            vel.x += WIND_FORCE_X * deltaTime
+            vel.y += WIND_FORCE_Y * deltaTime
+            vel.z += WIND_FORCE_Z * deltaTime  
+            //console.log(WIND_FORCE);
+        }
+
+        else if(!mouseIsPressed){
+            vel.x -= WIND_FORCE_X * deltaTime
+            vel.y -= WIND_FORCE_Y * deltaTime
+            vel.z -= WIND_FORCE_Z * deltaTime
+            //console.log(WIND_FORCE);
+        }
+        
 
         // Top are fixed
         if (i <= 10) {
