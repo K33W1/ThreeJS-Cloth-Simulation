@@ -16,8 +16,12 @@ const VERT_DIAGONAL_LENGTH = Math.sqrt((VERT_LENGTH * VERT_LENGTH) * 2);
 const CLOTH_K = 1;
 const GRAVITY = 1;
 const TIME_SCALE = 10;
-const WIND_SPEED_MIN = 2;
-const WIND_SPEED_MAX = 4; 
+const WIND_SPEED_MIN_X = 1;
+const WIND_SPEED_MAX_X = 3;
+const WIND_SPEED_MIN_Y = 0;
+const WIND_SPEED_MAX_Y = 1;
+const WIND_SPEED_MIN_Z = 2;
+const WIND_SPEED_MAX_Z = 4; 
 
 let renderer;
 let scene;
@@ -27,14 +31,15 @@ let geometry;
 let vertexVelocities = [];
 
 // changing wind force
-let WIND_FORCE = 1.5;
+let WIND_FORCE_X = 0;
+let WIND_FORCE_Y = 0;
+let WIND_FORCE_Z = 1.5;
 
 // mouse click
 let clickChecker = false;
 let mouseIsPressed = false;
 
 // fix for delta time variables
-let gameTime = 0;
 let deltaTime = 0;
 let typicalFrame  = 16;
 let smallestFrame = 14;
@@ -68,18 +73,24 @@ function onResize() {
 
 function onMousePress(){
     
-    let randFloat = Math.random() * (WIND_SPEED_MAX - WIND_SPEED_MIN) + WIND_SPEED_MIN;
+    let randFloat_X = Math.random() * (WIND_SPEED_MAX_X - WIND_SPEED_MIN_X) + WIND_SPEED_MIN_X;
+    let randFloat_Y = Math.random() * (WIND_SPEED_MAX_Y - WIND_SPEED_MIN_Y) + WIND_SPEED_MIN_Y;
+    let randFloat_Z = Math.random() * (WIND_SPEED_MAX_Z - WIND_SPEED_MIN_Z) + WIND_SPEED_MIN_Z;
 
     if(!clickChecker){
         mouseIsPressed = true;
         clickChecker = true;
-        WIND_FORCE = randFloat;
+        WIND_FORCE_X = randFloat_X;
+        WIND_FORCE_Y = randFloat_Y;
+        WIND_FORCE_Z = randFloat_Z;
     }
 
     else if(clickChecker){
         mouseIsPressed = false;     
         clickChecker = false;
-        WIND_FORCE = randFloat;
+        WIND_FORCE_X = randFloat_X;
+        WIND_FORCE_Y = randFloat_Y;
+        WIND_FORCE_Z = randFloat_Z;
     }
 }
 
@@ -187,9 +198,7 @@ function update() {
         fixedDeltaTime = typicalFrame;
     }
 
-    gameTime += fixedDeltaTime;
     timeBefore = timeNow;
-
 
     updateCloth(fixedDeltaTime/100);
     updateCamera();
@@ -263,13 +272,17 @@ function updateCloth(deltaTime) {
 
         // Wind Force
         if(mouseIsPressed){
-            vel.z += WIND_FORCE * deltaTime  
-            console.log(WIND_FORCE);
+            vel.x += WIND_FORCE_X * deltaTime
+            vel.y += WIND_FORCE_Y * deltaTime
+            vel.z += WIND_FORCE_Z * deltaTime  
+            //console.log(WIND_FORCE);
         }
 
         else if(!mouseIsPressed){
-            vel.z -= WIND_FORCE * deltaTime
-            console.log(WIND_FORCE);
+            vel.x -= WIND_FORCE_X * deltaTime
+            vel.y -= WIND_FORCE_Y * deltaTime
+            vel.z -= WIND_FORCE_Z * deltaTime
+            //console.log(WIND_FORCE);
         }
         
 
